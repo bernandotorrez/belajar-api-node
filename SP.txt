@@ -1,0 +1,14 @@
+BEGIN
+
+IF email_in = "null" THEN 
+
+SELECT id, name, email FROM users;
+
+ELSE
+
+SELECT id, name, email FROM users where email = email_in AND password = pass_in;
+
+END IF;
+
+
+END
