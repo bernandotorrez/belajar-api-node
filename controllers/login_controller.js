@@ -5,12 +5,13 @@ const md5 = require('md5');
 module.exports.controller = (login) => {
 
 	
-
 	// why validation.error? because the Joi callback have an object called error
 
+	// fungsi { } pada const adalah mengextends key, contoh 
+	// const { username } = req.body itu sama dengan const username = req.body.username
 
 	login.post('/api/login', (req, res, next) => {
-		const { email, password } = req.body;
+		const { username, password } = req.body;
 		const { error } = validate(req.body);
 
 		if(error){
@@ -19,7 +20,7 @@ module.exports.controller = (login) => {
 		return;
 		}
 
-		db.query(`CALL SPGetUserData ('${email}', '${password}')`, (err, rows, fields) => {
+		db.query(`CALL SPGetUserData ('${username}', '${md5(password)}')`, (err, rows, fields) => {
 			if(err) res.send(err);
 			else if(rows.length==0 || rows=='') res.status(404).send('not found');
    			else res.send(rows[0]).status(200);
@@ -28,9 +29,17 @@ module.exports.controller = (login) => {
 		});
 	});
 
-	login.put('/api/login', (req, res, next) => {
-		const { email, password, nama } = req.body;
+	login.put('/api/login/:username', (req, res, next) => {
+		const { password, level } = req.body;
 		const { error } = validate(req.body);
+
+		//res.send(req.params.username);
+		/*db.query(`SELECT * from login WHERE username = '${req.params.username}'`, (err, rows, fields) => {
+			if(err) res.status(400).send(err);return;
+			else if(rows.count == 0) res.status(404).send('Not Found');
+			
+
+		});*/
 		
 		if(error){
 			// 400 is bad request
@@ -38,7 +47,7 @@ module.exports.controller = (login) => {
 		return;
 		}
 
-		db.query(`UPDATE users SET name = '${nama}' WHERE email = '${email}' AND password = '${password}'`, (err, rows, fields) => {
+		db.query(`UPDATE login SET level = '${level}' WHERE username = '${username}'`, (err, rows, fields) => {
 			if(err) res.send(err);
 			else if(rows.length==0 || rows=='') res.status(404).send('not found');
    			else res.send(rows).status(200);
@@ -51,9 +60,8 @@ module.exports.controller = (login) => {
 	function validate(params){
 		const Schema = {
 
-		email: Joi.string().min(1).required(),
 		password: Joi.required(),
-		nama: Joi.required()	
+		level: Joi.required()	
 
 		};
 
